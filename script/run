@@ -1,0 +1,8 @@
+#!/bin/bash
+
+if ! docker build --rm -t up-or-not . >&/dev/null; then
+  docker build --rm .
+  exit 1
+fi
+
+exec docker run -it --rm up-or-not "$@"

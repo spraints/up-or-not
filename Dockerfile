@@ -1,7 +1,6 @@
-FROM golang:1.11.5
+FROM python
 
-WORKDIR /go/src/github.com/spraints/up-or-not/
+WORKDIR /app
 COPY . .
-RUN env CGOENABLED=0 go build -o up-or-not .
 
-FROM scratch
+ENTRYPOINT ["python3", "main.py"]

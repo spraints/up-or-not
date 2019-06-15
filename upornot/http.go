@@ -17,9 +17,10 @@ func buildHTTPHandler(m *model) http.Handler {
 func apiStatus(m *model) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		var res struct {
-			Count     int     `json:"count"`
-			AvgMillis float64 `json:"avg_ms"`
-			OKCount   int     `json:"ok"`
+			Count     int         `json:"count"`
+			AvgMillis float64     `json:"avg_ms"`
+			OKCount   int         `json:"ok"`
+			Last10    []dataPoint `json:"recent"`
 			Buckets   [5]struct {
 				MaxMillis int `json:"max_ms,omitempty"`
 				Count     int `json:"count"`
@@ -32,9 +33,7 @@ func apiStatus(m *model) http.Handler {
 
 		vals := m.Get()
 		res.Count = len(vals)
-		var (
-			totalMs float64
-		)
+		var totalMs float64
 		for _, val := range vals {
 			if val.Result == ok {
 				res.OKCount++
@@ -52,6 +51,12 @@ func apiStatus(m *model) http.Handler {
 		if res.OKCount > 0 {
 			res.AvgMillis = totalMs / float64(res.OKCount)
 		}
+
+		last10Start := res.Count - 10
+		if last10Start < 0 {
+			last10Start = 0
+		}
+		res.Last10 = vals[last10Start:res.Count]
 
 		apiRes(w, res)
 	})

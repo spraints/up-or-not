@@ -18,9 +18,9 @@ type model struct {
 }
 
 type dataPoint struct {
-	Time     time.Time
-	Duration time.Duration
-	Result   result
+	Time     time.Time     `json:"time"`
+	Duration time.Duration `json:"nanos"`
+	Result   result        `json:"status"`
 }
 
 type result string

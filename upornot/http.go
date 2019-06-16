@@ -5,22 +5,46 @@ import (
 	"encoding/json"
 	"log"
 	"net/http"
+	"net/url"
 )
 
-func buildHTTPHandler(m *model) http.Handler {
+func buildHTTPHandler(models []*model) http.Handler {
 	mux := http.NewServeMux()
-	mux.Handle("/api/status", apiStatus(m))
+	mux.Handle("/api/status", apiStatus(models[0]))
+	mux.Handle("/api/targets", apiTargets(models))
+	for _, m := range models {
+		prefix := apiTargetPrefix(m)
+		mux.Handle(prefix, apiStatus(m))
+		mux.Handle(prefix+"/recent", apiRecents(m))
+	}
 	// ? mux.HandleFunx("", homePage(m))
 	return mux
+}
+
+func apiTargetPrefix(m *model) string {
+	return "/api/target/" + url.PathEscape(m.TargetIP)
+}
+
+func apiTargets(models []*model) http.Handler {
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		var res struct {
+			TargetIPs []string `json:"targets"`
+		}
+
+		for _, m := range models {
+			res.TargetIPs = append(res.TargetIPs, apiTargetPrefix(m))
+		}
+
+		apiRes(w, res)
+	})
 }
 
 func apiStatus(m *model) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		var res struct {
-			Count     int         `json:"count"`
-			AvgMillis float64     `json:"avg_ms"`
-			OKCount   int         `json:"ok"`
-			Last10    []dataPoint `json:"recent"`
+			Count     int     `json:"count"`
+			AvgMillis float64 `json:"avg_ms"`
+			OKCount   int     `json:"ok"`
 			Buckets   [5]struct {
 				MaxMillis int `json:"max_ms,omitempty"`
 				Count     int `json:"count"`
@@ -52,11 +76,17 @@ func apiStatus(m *model) http.Handler {
 			res.AvgMillis = totalMs / float64(res.OKCount)
 		}
 
-		last10Start := res.Count - 10
-		if last10Start < 0 {
-			last10Start = 0
+		apiRes(w, res)
+	})
+}
+
+func apiRecents(m *model) http.Handler {
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		var res struct {
+			Recent []dataPoint `json:"recent"`
 		}
-		res.Last10 = vals[last10Start:res.Count]
+
+		res.Recent = m.Get()
 
 		apiRes(w, res)
 	})

@@ -3,6 +3,7 @@ package main
 import (
 	"context"
 	"flag"
+	"fmt"
 	"log"
 	"net/http"
 	"os"
@@ -16,9 +17,7 @@ func main() {
 	log.SetFlags(log.Ldate | log.Ltime | log.Lmicroseconds)
 
 	fs := flag.NewFlagSet("upornot", flag.ExitOnError)
-
-	targetIP := "127.0.0.1"
-	fs.StringVar(&targetIP, "target", targetIP, "IP address to ping")
+	fs.Usage = func() { fmt.Printf("Usage: up-or-not [OPTIONS] TARGET....") }
 
 	interval := time.Second
 	fs.DurationVar(&interval, "interval", interval, "interval between ping attempts")
@@ -29,6 +28,13 @@ func main() {
 	if err := fs.Parse(os.Args[1:]); err != nil {
 		log.Fatal(err)
 	}
+
+	if fs.NArg() == 0 {
+		fs.Usage()
+		os.Exit(1)
+	}
+
+	targetIPs := fs.Args()
 
 	ctx, cancel := context.WithCancel(context.Background())
 	defer cancel()
@@ -43,9 +49,20 @@ func main() {
 	}()
 
 	var wg sync.WaitGroup
-	m := &model{
-		TargetIP: targetIP,
-		Interval: interval,
+
+	models := make([]*model, 0, len(targetIPs))
+	for _, targetIP := range targetIPs {
+		m := &model{
+			TargetIP: targetIP,
+			Interval: interval,
+		}
+		models = append(models, m)
+
+		wg.Add(1)
+		go func() {
+			defer wg.Done()
+			logerr(ping(ctx, m), "ping")
+		}()
 	}
 
 	wg.Add(1)
@@ -53,14 +70,8 @@ func main() {
 		defer wg.Done()
 		logerr(serveHTTP(ctx, &http.Server{
 			Addr:    address,
-			Handler: buildHTTPHandler(m),
+			Handler: buildHTTPHandler(models),
 		}), "http server")
-	}()
-
-	wg.Add(1)
-	go func() {
-		defer wg.Done()
-		logerr(ping(ctx, m), "ping")
 	}()
 
 	wg.Wait()

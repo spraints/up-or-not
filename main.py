@@ -1,5 +1,6 @@
 from gpiozero import PWMLED
 from time import sleep
+import urllib, json
 
 # +------------------| |--| |------+
 # | ooooooooooooo P1 |C|  |A|      |
@@ -60,8 +61,20 @@ def off(name):
     sleep(1)
   led.off()
 
-# curl http://up-or-not.pickardayune.com:8080/api/status
-on("green")
-on("red")
-off("green")
-off("red")
+def run(url):
+  while True:
+    response = urllib.urlopen(url)
+    data = json.loads(response.read())
+    ok_pct = (1.0*data["buckets"][0]["count"])/data["count"]
+    bad_pct = 1.0 - (1.0*data["ok"])/data["count"]
+    print("ok %d (%d) / %d => %0.2f,%0.2f" % (data["ok"], data["buckets"][0]["count"], data["count"], ok_pct, bad_pct))
+    leds["green"].value = ok_pct
+    leds["red"].value = bad_pct
+    sleep(1)
+
+try:
+  run("http://up-or-not.pickardayune.com:8080/api/target/8.8.8.8")
+except:
+  for name in leds:
+    leds[name].off()
+  print "exit."

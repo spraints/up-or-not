@@ -1,4 +1,4 @@
-from gpiozero import LED
+from gpiozero import PWMLED
 from time import sleep
 
 # +------------------| |--| |------+
@@ -33,24 +33,35 @@ from time import sleep
 
 leds = {
   # Pin 11 / GPIO17
-  "green": LED(17),
+  "green": PWMLED(17),
   # Pin 12 / GPIO18
-  "red": LED(18)
+  "red": PWMLED(18)
 }
 
 def on(name):
   print("%s: turn on" % name)
-  leds[name].on()
+  led = leds[name]
+  val = led.value
+  while led.value < 0.9:
+    val = val + (1.0 - val) / 2.0
+    led.value = val
+    print("... %0.2f" % val)
+    sleep(1)
+  led.on()
 
 def off(name):
   print("%s: turn off" % name)
-  leds[name].off()
+  led = leds[name]
+  val = led.value
+  while led.value > 0.1:
+    val = val / 2.0
+    led.value = val
+    print("... %0.2f" % val)
+    sleep(1)
+  led.off()
 
 # curl http://up-or-not.pickardayune.com:8080/api/status
 on("green")
-sleep(2)
 on("red")
-sleep(2)
 off("green")
-sleep(2)
 off("red")

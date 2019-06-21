@@ -63,18 +63,41 @@ def off(name):
 
 def run(url):
   while True:
-    response = urllib.urlopen(url)
-    data = json.loads(response.read())
-    ok_pct = (1.0*data["buckets"][0]["count"])/data["count"]
-    bad_pct = 1.0 - (1.0*data["ok"])/data["count"]
-    print("ok %d (%d) / %d => %0.2f,%0.2f" % (data["ok"], data["buckets"][0]["count"], data["count"], ok_pct, bad_pct))
-    leds["green"].value = ok_pct
-    leds["red"].value = bad_pct
+    try:
+      response = urllib.urlopen(url)
+      data = json.loads(response.read())
+      green_score = score_green(data)
+      red_score = score_red(data)
+      print("ok %0.2f / bad %0.2f" % (green_score, red_score))
+      leds["green"].value = green_score
+      leds["red"].value = red_score
+    except IOError as e:
+      print(e)
+      leds["green"].value = 0.0
+      leds["red"].value = 1.0
     sleep(1)
+
+def score_green(data):
+  score = 0.0
+  factor = 1.0
+  for bucket in data["buckets"]:
+    score += factor * bucket["count"]
+    factor /= 2
+  return score / data["count"]
+
+def score_red(data):
+  score = 0.0
+  score += (data["count"] - data["ok"])
+  factor = 1.0
+  # start at the end, but only look at the worst two buckets.
+  for bucket in data["buckets"][::-1][0:2]:
+    score += factor * bucket["count"]
+    factor /= 2
+  return score / data["count"]
 
 try:
   run("http://up-or-not.pickardayune.com:8080/api/target/8.8.8.8")
-except:
+except KeyboardInterrupt:
   for name in leds:
     leds[name].off()
   print "exit."

@@ -51,9 +51,10 @@ func apiStatus(m *model) http.Handler {
 			} `json:"buckets"`
 		}
 		res.Buckets[0].MaxMillis = 60
-		res.Buckets[1].MaxMillis = 100
-		res.Buckets[2].MaxMillis = 200
+		res.Buckets[1].MaxMillis = 150
+		res.Buckets[2].MaxMillis = 400
 		res.Buckets[3].MaxMillis = 1000
+		// the last one is everything >= 1000
 
 		vals := m.Get()
 		res.Count = len(vals)

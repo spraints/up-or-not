@@ -72,9 +72,10 @@ def run(url):
       leds["green"].value = green_score
       leds["red"].value = red_score
     except (IOError, ValueError) as e:
+      # If tiny isn't accessible, assume the internet is DOWN
       print(e)
       leds["green"].value = 0.0
-      leds["red"].value = 0.0
+      leds["red"].value = 1.0
     sleep(1)
 
 def score_green(data):

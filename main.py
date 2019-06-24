@@ -71,10 +71,10 @@ def run(url):
       print("ok %0.2f / bad %0.2f" % (green_score, red_score))
       leds["green"].value = green_score
       leds["red"].value = red_score
-    except IOError as e:
+    except (IOError, ValueError) as e:
       print(e)
       leds["green"].value = 0.0
-      leds["red"].value = 1.0
+      leds["red"].value = 0.0
     sleep(1)
 
 def score_green(data):

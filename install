@@ -1,0 +1,11 @@
+#!/bin/bash
+
+set -e
+set -o nounset
+
+dir="$(cd "$(dirname "$0")"; pwd -P)"
+
+set -x
+
+sudo systemctl enable "${dir}/upornot.service"
+sudo systemctl start upornot

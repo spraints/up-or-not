@@ -24,12 +24,16 @@ import board
 import neopixel
 import time
 
+INTERVAL = 0.1
+
 #p = {}
-p = neopixel.NeoPixel(board.D18, 95, brightness = 1)
+p = neopixel.NeoPixel(board.D18, 95, brightness = 0.1, auto_write = False)
 
 def run():
+  last = None
   while True:
-    t = int(time.time())
+    tf = time.time()
+    t = int(tf)
     i = 0
     while t > 0:
       if t & 0x01 == 0:
@@ -38,7 +42,11 @@ def run():
         p[i] = (0,255,0)
       t = int(t / 2)
       i = i + 1
-    time.sleep(0.3)
+    p.show()
+
+    elapsed = time.time() - tf
+    if elapsed < INTERVAL:
+      time.sleep(INTERVAL - elapsed)
 
 try:
   run()

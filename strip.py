@@ -23,22 +23,25 @@
 import board
 import neopixel
 from time import sleep
-import urllib, json
+import json
+from urllib.request import urlopen
 
 #p = {}
-p = neopixel.NeoPixel(board.D18, 95)
+p = neopixel.NeoPixel(board.D18, 95, brightness = 1)
 
 MILLI = 1000000
 BEST_NANOS  =  20*MILLI
-WORST_NANOS = 300*MILLI
+WORST_NANOS = 100*MILLI
 
 def run(url):
   max = 0
   while True:
     try:
-      response = urllib.urlopen(url)
+      response = urlopen(url)
       data = json.loads(response.read())
-      for i, r in enumerate(data["recent"]):
+      recent = data["recent"]
+      recent.reverse()
+      for i, r in enumerate(recent):
         if i > max:
           max = i
         if r["status"] != "OK":
@@ -65,4 +68,4 @@ try:
   run("http://up-or-not.pickardayune.com:8080/api/target/8.8.8.8/recent")
 except KeyboardInterrupt:
   p.deinit()
-  print "exit."
+  print("exit.")

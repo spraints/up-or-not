@@ -1,16 +1,33 @@
 #!/usr/bin/env ruby
+#
+#  <xbar.title>Up-or-not</xbar.title>
+#  <xbar.version>v1.0</xbar.version>
+#  <xbar.author>Matt Burke</xbar.author>
+#  <xbar.author.github>spraints</xbar.author.github>
+#  <xbar.desc>Check with an instance of https://github.com/spraints/up-or-not to see if your connection is good or not.</xbar.desc>
+#  <xbar.dependencies>ruby</xbar.dependencies>
+#  <xbar.abouturl>https://github.com/spraints/up-or-not</xbar.abouturl>
+#
+#  <xbar.var>string(VAR_URL="http://up-or-not.local/api/target/8.8.8.8"): URL of up-or-not server.</xbar.var>
+#  <xbar.var>string(VAR_ADDR=""): Optional resolved address for your host, useful if DNS needs a working internet connection.</xbar.var>
 
 require "json"
 require "net/http"
 
-TINY_IP = "192.168.164.241"
-URL = "http://up-or-not.pickardayune.com:8080/api/target/8.8.8.8"
+ADDR = ENV["ADDR"]
+URL = ENV["URL"]
 
 def main
-  http = Net::HTTP.new(TINY_IP, 8080)
+  u = URI(URL)
+  host, port = u.host, u.port
+  if ADDR && ADDR =~ /(.*):(\d+)/
+    host = $1
+    port = $2.to_i
+  end
+  http = Net::HTTP.new(host, port)
   http.open_timeout = 1.0
   http.start do |http|
-    req = Net::HTTP::Get.new(URI(URL))
+    req = Net::HTTP::Get.new(u)
     res = http.request(req)
     case res
     when Net::HTTPOK

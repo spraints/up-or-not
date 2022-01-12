@@ -8,8 +8,8 @@
 #  <xbar.dependencies>ruby</xbar.dependencies>
 #  <xbar.abouturl>https://github.com/spraints/up-or-not</xbar.abouturl>
 #
-#  <xbar.var>string(VAR_URL="http://up-or-not.local/api/target/8.8.8.8"): URL of up-or-not server.</xbar.var>
-#  <xbar.var>string(VAR_ADDR=""): Optional resolved address for your host, useful if DNS needs a working internet connection.</xbar.var>
+#  <xbar.var>string(URL="http://up-or-not.local/api/target/8.8.8.8"): URL of up-or-not server.</xbar.var>
+#  <xbar.var>string(ADDR=""): Optional resolved address for your host, useful if DNS needs a working internet connection.</xbar.var>
 
 require "json"
 require "net/http"

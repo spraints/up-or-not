@@ -1,6 +1,6 @@
 from gpiozero import PWMLED
 from time import sleep
-import urllib, json
+import urllib.request, json
 
 # +------------------| |--| |------+
 # | ooooooooooooo P1 |C|  |A|      |
@@ -64,7 +64,7 @@ def off(name):
 def run(url):
   while True:
     try:
-      response = urllib.urlopen(url)
+      response = urllib.request.urlopen(url)
       data = json.loads(response.read())
       green_score = score_green(data)
       red_score = score_red(data)
@@ -76,7 +76,7 @@ def run(url):
       print(e)
       leds["green"].value = 0.0
       leds["red"].value = 1.0
-    sleep(1)
+    sleep(10)
 
 def score_green(data):
   score = 0.0
@@ -101,4 +101,4 @@ try:
 except KeyboardInterrupt:
   for name in leds:
     leds[name].off()
-  print "exit."
+  print("exit.")

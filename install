@@ -7,5 +7,21 @@ dir="$(cd "$(dirname "$0")"; pwd -P)"
 
 set -x
 
+cat > upornot.service <<EOF
+[Unit]
+Description=MattyPI Network Status Lights
+After=network.target
+
+[Service]
+Type=simple
+ExecStart=/usr/bin/python3 main.py
+WorkingDirectory=${dir}
+Restart=always
+RestartSec=60
+
+[Install]
+WantedBy=multi-user.target
+EOF
+
 sudo systemctl enable "${dir}/upornot.service"
 sudo systemctl start upornot
